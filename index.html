@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BTC Regime-Adaptive Trading Framework — Onesun Lee</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0e17;
+  --surface: #111827;
+  --surface2: #1a2332;
+  --border: #1e293b;
+  --text: #e2e8f0;
+  --text-muted: #94a3b8;
+  --accent: #00d4aa;
+  --accent2: #4dabf7;
+  --red: #ff4757;
+  --orange: #ffa502;
+  --yellow: #ffd43b;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; line-height:1.7; }
+.container { max-width:820px; margin:0 auto; padding:60px 24px 100px; }
+
+/* Header */
+.header { text-align:center; margin-bottom:72px; padding-bottom:48px; border-bottom:1px solid var(--border); }
+.header .tag { font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:3px; color:var(--accent); text-transform:uppercase; margin-bottom:16px; }
+.header h1 { font-family:'Instrument Serif',serif; font-size:clamp(32px,5vw,48px); font-weight:400; line-height:1.2; margin-bottom:16px; color:#fff; }
+.header h1 em { font-style:italic; color:var(--accent); }
+.header .subtitle { font-size:16px; color:var(--text-muted); max-width:580px; margin:0 auto 24px; }
+.header .author { font-size:13px; color:var(--text-muted); }
+.header .author strong { color:var(--text); font-weight:500; }
+
+/* Metrics bar */
+.metrics-bar { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border-radius:12px; overflow:hidden; margin:40px 0; }
+.metric { background:var(--surface); padding:24px 16px; text-align:center; }
+.metric .value { font-family:'JetBrains Mono',monospace; font-size:28px; font-weight:500; color:var(--accent); }
+.metric .value.red { color:var(--red); }
+.metric .label { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1.5px; margin-top:6px; }
+.metric .vs { font-size:11px; color:var(--text-muted); margin-top:2px; }
+
+/* Section */
+h2 { font-family:'Instrument Serif',serif; font-size:28px; font-weight:400; margin:56px 0 20px; color:#fff; }
+h2 .num { color:var(--accent); font-family:'JetBrains Mono',monospace; font-size:14px; margin-right:8px; }
+h3 { font-size:16px; font-weight:600; margin:28px 0 12px; color:var(--accent2); }
+p { margin-bottom:16px; color:var(--text-muted); font-size:15px; }
+p strong { color:var(--text); font-weight:500; }
+
+/* Architecture diagram */
+.arch { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:32px; margin:24px 0; }
+.arch-title { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--accent); text-transform:uppercase; letter-spacing:2px; margin-bottom:20px; }
+.arch-flow { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; justify-items:center; gap:12px; }
+.arch-box { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:14px 20px; text-align:center; min-width:140px; width:100%; }
+.arch-box .layer { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--accent); text-transform:uppercase; letter-spacing:1px; }
+.arch-box .name { font-size:14px; font-weight:500; color:#fff; margin-top:4px; }
+.arch-box .detail { font-size:11px; color:var(--text-muted); margin-top:2px; }
+.arch-arrow { color:var(--accent); font-size:20px; }
+.arch-box.expansion { border-color:var(--accent); }
+.arch-box.risk { border-color:var(--red); }
+
+/* Regime grid */
+.regime-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:20px 0; }
+.regime-card { background:var(--surface); border-radius:8px; padding:16px; border-left:3px solid; }
+.regime-card.exp { border-color:var(--accent); }
+.regime-card.stb { border-color:var(--accent2); }
+.regime-card.tgt { border-color:var(--orange); }
+.regime-card.bs { border-color:var(--red); }
+.regime-card .rname { font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:500; margin-bottom:4px; }
+.regime-card.exp .rname { color:var(--accent); }
+.regime-card.stb .rname { color:var(--accent2); }
+.regime-card.tgt .rname { color:var(--orange); }
+.regime-card.bs .rname { color:var(--red); }
+.regime-card .rdesc { font-size:13px; color:var(--text-muted); }
+
+/* Principle box */
+.principle { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:20px 24px; margin:12px 0; display:flex; gap:16px; align-items:flex-start; }
+.principle .pnum { font-family:'JetBrains Mono',monospace; font-size:20px; color:var(--accent); font-weight:500; min-width:28px; }
+.principle .ptitle { font-size:14px; font-weight:600; color:#fff; }
+.principle .pdesc { font-size:13px; color:var(--text-muted); margin-top:4px; }
+
+/* Current signal */
+.signal-box { background:linear-gradient(135deg, #0d2818 0%, #111827 100%); border:1px solid #1a4a2e; border-radius:12px; padding:28px; margin:24px 0; text-align:center; }
+.signal-box .sig-label { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--accent); text-transform:uppercase; letter-spacing:2px; }
+.signal-box .sig-value { font-size:36px; font-weight:600; color:#fff; margin:8px 0; }
+.signal-box .sig-detail { font-size:13px; color:var(--text-muted); }
+
+/* Callout */
+.callout { background:var(--surface); border-left:3px solid var(--accent); padding:16px 20px; margin:20px 0; border-radius:0 8px 8px 0; }
+.callout p { margin:0; font-size:14px; font-style:italic; color:var(--text); }
+.callout .src { font-size:12px; color:var(--text-muted); margin-top:8px; font-style:normal; }
+
+/* Limitations */
+.limit { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:16px 20px; margin:8px 0; }
+.limit .ltitle { font-size:13px; font-weight:600; color:var(--orange); }
+.limit .ldesc { font-size:13px; color:var(--text-muted); margin-top:4px; }
+
+/* Footer */
+.footer { margin-top:72px; padding-top:32px; border-top:1px solid var(--border); text-align:center; }
+.footer p { font-size:12px; color:var(--text-muted); }
+
+/* Table */
+table { width:100%; border-collapse:collapse; margin:16px 0; font-size:14px; }
+th { text-align:left; padding:10px 12px; border-bottom:2px solid var(--border); color:var(--text-muted); font-size:11px; text-transform:uppercase; letter-spacing:1px; font-weight:500; }
+td { padding:10px 12px; border-bottom:1px solid var(--border); }
+td.num { font-family:'JetBrains Mono',monospace; text-align:right; }
+td.green { color:var(--accent); }
+td.red { color:var(--red); }
+
+@media (max-width:600px) {
+  .metrics-bar { grid-template-columns:repeat(2,1fr); }
+  .regime-grid { grid-template-columns:1fr; }
+  .arch-flow { flex-direction:column; }
+  .arch-arrow { transform:rotate(90deg); }
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+<div class="header">
+  <div class="tag">Research Note v1.0 — April 2026</div>
+  <h1>From Commodities to Crypto:<br><em>A Regime-Adaptive Trading Framework</em></h1>
+  <p class="subtitle">A systematic discretionary approach to crypto — applying 12 years of commodity trading across physical and derivatives markets to a multi-layer decision framework.</p>
+  <p class="author"><strong>Onesun Lee</strong> · USC Marshall IBEAR MBA '26 · Ex-Samsung C&T / TRIPTIK TRADING SA (Geneva)</p>
+</div>
+
+<!-- Metrics -->
+<div class="metrics-bar">
+  <div class="metric">
+    <div class="value">2.2x</div>
+    <div class="label">vs Buy & Hold</div>
+    <div class="vs">Return</div>
+  </div>
+  <div class="metric">
+    <div class="value">0.81</div>
+    <div class="label">Sharpe Ratio</div>
+    <div class="vs">Ann. 32.1%</div>
+  </div>
+  <div class="metric">
+    <div class="value red">-44%</div>
+    <div class="label">Max Drawdown</div>
+    <div class="vs">vs B&H -82%</div>
+  </div>
+  <div class="metric">
+    <div class="value">3.1x</div>
+    <div class="label">Profit Factor</div>
+    <div class="vs">10x in 8 years</div>
+  </div>
+</div>
+
+<!-- Section 1: Why -->
+<h2><span class="num">01</span> The Problem</h2>
+<p>Most crypto trading analysis falls into one of two traps: <strong>single-indicator dependence</strong> (MVRV says buy, so buy) or <strong>narrative-driven positioning</strong> (ETF inflows = bullish, therefore long). Both approaches worked in previous cycles but have shown diminishing reliability in the post-ETF institutional era.</p>
+<p>Since the January 2024 spot ETF approval, Bitcoin's market structure has fundamentally changed. On-chain metrics have decoupled from price action. Whale execution has fragmented across exchanges in 300-500 BTC micro-batches. Cycle indicators like Pi Cycle and 200W MA Heatmap failed to produce their historical overheat signals. <strong>The old playbook is broken.</strong></p>
+<p>This framework was built to address that structural shift — not by abandoning on-chain analysis, but by embedding it within a multi-layer decision architecture that adapts to the regime it operates in.</p>
+
+<!-- Section 2: Architecture -->
+<h2><span class="num">02</span> Architecture: Four Decision Layers</h2>
+<p>The model doesn't make one decision. It makes four, in sequence, each constraining the next. This mirrors how institutional commodity desks operate — you don't trade the spread without knowing the macro, and you don't size the position without knowing the spread.</p>
+
+<div class="arch">
+  <div class="arch-title">Decision Flow</div>
+  <div class="arch-flow">
+    <div class="arch-box">
+      <div class="layer">Layer 1</div>
+      <div class="name">Macro Regime</div>
+      <div class="detail">M2 · DXY · VIX · HY Spread</div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box">
+      <div class="layer">Layer 2</div>
+      <div class="name">Market Phase</div>
+      <div class="detail">BULL_EARLY · BULL_LATE · BEAR</div>
+    </div>
+  </div>
+  <div style="text-align:center; color:var(--accent); font-size:20px; margin:8px 0;">↓</div>
+  <div class="arch-flow">
+    <div class="arch-box expansion">
+      <div class="layer">Layer 3</div>
+      <div class="name">Composite Score</div>
+      <div class="detail">On-chain · Sentiment · Momentum</div>
+    </div>
+    <div class="arch-arrow">→</div>
+    <div class="arch-box risk">
+      <div class="layer">Layer 4</div>
+      <div class="name">Risk Management</div>
+      <div class="detail">Phase stops · Pre-crisis · Regime exit</div>
+    </div>
+  </div>
+</div>
+
+<h3>Layer 1: Macro Regime Classification</h3>
+<p>Four macro variables — <strong>M2 money supply growth, DXY trend vs. 50-day SMA, VIX level, and High Yield spread change</strong> — are scored on a bull/bear axis. The net score classifies the current environment into one of four regimes, each with distinct position sizing rules.</p>
+
+<div class="regime-grid">
+  <div class="regime-card exp">
+    <div class="rname">EXPANSION</div>
+    <div class="rdesc">Liquidity expanding, dollar weakening, low volatility. Core long position with wide trailing stops. ~31% of historical days.</div>
+  </div>
+  <div class="regime-card stb">
+    <div class="rname">STABLE</div>
+    <div class="rdesc">Mixed signals, no clear direction. Moderate positioning with tighter risk controls. ~60% of historical days.</div>
+  </div>
+  <div class="regime-card tgt">
+    <div class="rname">TIGHTENING</div>
+    <div class="rdesc">Liquidity contracting, dollar strengthening. Minimal or short exposure. ~5% of historical days.</div>
+  </div>
+  <div class="regime-card bs">
+    <div class="rname">BLACK SWAN</div>
+    <div class="rdesc">VIX spike, credit stress. Immediate risk reduction. ~4% of historical days.</div>
+  </div>
+</div>
+
+<p><strong>Why this matters in 2025-2026:</strong> Last year's M2 expansion coincided with a BTC drawdown — a divergence that single-factor models couldn't explain. The multi-axis regime classification caught this: while M2 was expanding, DXY strengthened and VIX spiked intermittently, keeping the regime in STABLE rather than EXPANSION. The model correctly reduced position sizing during this period despite the "bullish" M2 narrative.</p>
+
+<h3>Layer 2: Market Phase</h3>
+<p>Within bull regimes, the model distinguishes between <strong>early-cycle accumulation</strong> (wide stops, patience through 20%+ corrections) and <strong>late-cycle distribution</strong> (tight stops, quick exits on MVRV overextension). This is directly inspired by commodity cycle management — you trade the front of a supercycle differently than the blow-off top.</p>
+
+<h3>Layer 3: Composite Score</h3>
+<p>Eight variables — MVRV Z-Score, NUPL, Fear & Greed, SOPR, VIX, DXY, 4-week and 12-week momentum — are combined with <strong>regime-conditional weights</strong>. In EXPANSION, on-chain valuation metrics dominate. In TIGHTENING, macro stress indicators take over. The score ranges 0-100, where high = fear (buy zone) and low = greed (sell zone). This contrarian framing proved 92% accurate at historical cycle inflection points.</p>
+
+<h3>Layer 4: Risk Management</h3>
+<p>Three independent risk mechanisms operate simultaneously: <strong>phase-specific trailing stops</strong> (20% in BULL_EARLY, 8% in BULL_LATE), a <strong>pre-crisis early warning system</strong> (VIX crossing 23 from below, or BTC below 200-day MA with 90-day drawdown exceeding 15%), and <strong>regime-based forced exits</strong> (BLACK_SWAN detection triggers immediate position reduction).</p>
+
+<!-- Section 3: Core Long -->
+<h2><span class="num">03</span> The Core Long Insight</h2>
+<p>The single most impactful discovery in this project: <strong>holding a large core position through bull regimes and letting the score provide only minor adjustments outperforms any score-driven entry/exit system.</strong></p>
+<p>Early versions (V11-V13) used the composite score to determine position size directly. Score 80 = 80% long, score 40 = 0%. This produced modest returns (+31%) with low drawdowns (-23%) but systematically missed the bulk of every rally. The model was too reactive — cutting positions on temporary fear spikes only to re-enter at higher prices.</p>
+<p>The breakthrough came from inverting the logic: <strong>the regime determines the base position (68-98%), and the score provides ±8% micro-adjustments.</strong> This simple change — holding conviction through noise — took returns from +31% to +906% while maintaining directional accuracy. The commodity trader's instinct validated: in a structural bull move, the biggest risk is not being in the market.</p>
+
+<div class="callout">
+  <p>"Signals big, stops late, re-entries rare."</p>
+  <p class="src">— Core design principle</p>
+</div>
+
+<!-- Section 4: What the model says now -->
+<h2><span class="num">04</span> Current Market Read</h2>
+
+<div class="signal-box">
+  <div class="sig-label">Current Signal — April 2026</div>
+  <div class="sig-value">ACCUMULATE 35%</div>
+  <div class="sig-detail">Fear Score 61.0 / 100 · Macro Regime: STABLE · BTC $75,657 · Below 200d MA</div>
+</div>
+
+<p>The model currently reads the environment as <strong>STABLE with elevated fear</strong> — a positioning zone, not a conviction zone. Score at 65 reflects on-chain undervaluation (MVRV Z-Score 0.69, historically low) combined with macro uncertainty (DXY near 50d SMA, VIX at 18). The 35% position recommendation reflects moderate conviction: enough exposure to benefit from recovery, small enough to withstand further drawdown.</p>
+<p>The key variable to watch: <strong>M2 trajectory</strong>. If the current M2 expansion continues and DXY weakens below its 50-day SMA, the regime will flip to EXPANSION, triggering a core long position of 90%+. This would be the high-conviction entry the framework is designed to capture.</p>
+
+<!-- Section 5: Performance -->
+<h2><span class="num">05</span> Backtest Performance (2018-2026)</h2>
+
+<table>
+  <tr><th>Metric</th><th>Strategy</th><th>Buy & Hold</th></tr>
+  <tr><td>Total Return</td><td class="num green">+906%</td><td class="num">+405%</td></tr>
+  <tr><td>CAGR</td><td class="num green">+32.1%</td><td class="num">+22%</td></tr>
+  <tr><td>Sharpe Ratio</td><td class="num green">0.81</td><td class="num">0.42</td></tr>
+  <tr><td>Calmar Ratio</td><td class="num green">0.73</td><td class="num">0.27</td></tr>
+  <tr><td>Max Drawdown</td><td class="num red">-43.7%</td><td class="num red">-81.5%</td></tr>
+  <tr><td>Profit Factor</td><td class="num green">3.09</td><td class="num">—</td></tr>
+  <tr><td>Win Rate</td><td class="num">46%</td><td class="num">—</td></tr>
+  <tr><td>Cycle Accuracy</td><td class="num green">92%</td><td class="num">—</td></tr>
+</table>
+
+<!-- Section 6: Limitations -->
+<h2><span class="num">06</span> Known Limitations & Active Development</h2>
+
+<div class="limit">
+  <div class="ltitle">In-Sample Backtest Bias</div>
+  <div class="ldesc">All results are in-sample. Walk-forward out-of-sample R² remains negative, meaning the model cannot predict exact forward returns — though directional accuracy (92%) and trade-level profitability remain robust. Addressing this through expanding the out-of-sample window as live trading data accumulates.</div>
+</div>
+
+<div class="limit">
+  <div class="ltitle">Drawdown Management — Structural vs. Tactical</div>
+  <div class="ldesc">Max drawdown of -43.7% remains the primary area for improvement (vs. B&H -81.5%). Analysis of all DD > -30% events reveals they concentrate in STABLE regime periods where the model maintains 52% average exposure. A pre-crisis early warning system (VIX crossing 23 from below, BTC below 200-day MA with 90-day DD exceeding 15%) and STABLE-specific stop losses (-15% from entry after 30 days) have been implemented, reducing worst-case trade losses. However, sudden BLACK_SWAN events (VIX jumping from 17→37 intraday) remain structurally unhedgeable without options or futures overlays — an active development priority.</div>
+</div>
+
+<div class="limit">
+  <div class="ltitle">On-Chain Data Coverage</div>
+  <div class="ldesc">Primary on-chain data (MVRV, NUPL, SOPR) from BGeometrics covers 2022-present. Historical MVRV and NUPL are backfilled from CoinMetrics community data (2017-2022) using MVRV ratio and the mathematical identity NUPL = 1 - 1/MVRV. Full Glassnode Pro access would improve historical calibration with native Z-score computation. As the ForeDex report highlights, post-ETF on-chain metrics are structurally weakening — the framework already mitigates this by weighting macro factors more heavily in STABLE/TIGHTENING regimes.</div>
+</div>
+
+<div class="limit">
+  <div class="ltitle">Structural Long Bias</div>
+  <div class="ldesc">BTC appreciated 12x during the test period. Any long-biased strategy benefits from this tailwind. Short-side returns (TIGHTENING regime) are modest and less validated. The framework's real test will come in a prolonged sideways or structurally declining market.</div>
+</div>
+
+<!-- Section 7: Roadmap -->
+<h2><span class="num">07</span> Development Roadmap</h2>
+
+<p><strong>Near-term:</strong> Probability-based regime scoring (continuous net score replacing discrete regime labels), reducing position whipsaw at regime boundaries. STABLE regime stop-loss calibration to reduce DD without sacrificing recovery participation. The immediate development targets are <strong>Sharpe ratio above 1.0, max drawdown below 30%, and CAGR above 20%</strong> — achievable primarily through improved drawdown management while preserving the core long conviction structure. The structural long bias inherent in the current model must be continuously monitored and adjusted as BTC matures as an asset class.</p>
+
+<p><strong>Medium-term:</strong> Alt-coin rotation layer using BTC dominance as a timing signal. ETF flow integration as a leading indicator for institutional positioning. DeFi yield/TVL metrics for on-chain liquidity assessment.</p>
+
+<p><strong>Long-term:</strong> Walk-forward validation framework with rolling 6-month OOS windows. Cross-asset macro regime model incorporating rates, credit, and commodities. Options overlay for tail risk hedging during BLACK_SWAN transitions.</p>
+
+<!-- Section 8: Background -->
+<h2><span class="num">08</span> Background</h2>
+<p>This framework was built by a commodity trader, not a quant. Over 12 years trading crude oil, naphtha, and petrochemicals across physical and derivatives markets at Samsung C&T and TRIPTIK TRADING SA (Geneva) taught me that markets are regime-dependent — the same price signal means different things in a contango vs. backwardation environment. The benzene/naphtha spread behaves differently when Chinese inventory is at 200K tons vs. 30K tons. You can't trade a single number; you need to know which regime you're in.</p>
+<p>Crypto is no different. MVRV at 3.0 in an EXPANSION regime (M2 growing, DXY falling) is a hold signal. MVRV at 3.0 in a TIGHTENING regime is an exit signal. The framework encodes this context-dependency explicitly, which is why complexity in signal generation hurt performance but complexity in regime classification improved it.</p>
+<p>The transition from discretionary to systematic trading is not about replacing intuition with algorithms. It's about <strong>encoding intuition into a repeatable, testable framework</strong> — and then being honest about where the framework breaks down.</p>
+
+<div class="footer">
+  <p>© 2026 Onesun Lee · onesun.lee@usc.edu · This document is for informational purposes only and does not constitute investment advice.</p>
+</div>
+
+</div>
+</body>
+</html>
