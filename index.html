@@ -50,7 +50,7 @@ p strong { color:var(--text); font-weight:500; }
 /* Architecture diagram */
 .arch { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:32px; margin:24px 0; }
 .arch-title { font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--accent); text-transform:uppercase; letter-spacing:2px; margin-bottom:20px; }
-.arch-flow { display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:8px; }
+.arch-flow { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; justify-items: center; }
 .arch-box { background:var(--surface2); border:1px solid var(--border); border-radius:8px; padding:14px 20px; text-align:center; min-width:140px; }
 .arch-box .layer { font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--accent); text-transform:uppercase; letter-spacing:1px; }
 .arch-box .name { font-size:14px; font-weight:500; color:#fff; margin-top:4px; }
