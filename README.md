@@ -2,7 +2,6 @@
 
 **A multi-layer systematic discretionary trading model built by a commodity trader.**
 
-> "신호는 크게, 손절은 늦게, 재진입은 적게."  
 > *Signals big, stops late, re-entries rare.*
 
 ---
