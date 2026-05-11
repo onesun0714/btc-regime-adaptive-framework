@@ -217,7 +217,7 @@ Open to dialogue with traders, founders, and allocators who think about cycle-dr
 
 - 📧 **Email**: onesun1220@gmail.com
 - 💼 **LinkedIn**: [linkedin.com/in/onesun-lee](https://www.linkedin.com/in/onesun-lee)
-- 📄 **Full Paper**: [Download PDF](BTC_Cycle_Strategy_V18_WhitePaper.pdf)
+- 📄 **Full Paper**: [Download PDF](BTC_Cycle_Strategy_V17_WhitePaper.pdf)
 
 ---
 
