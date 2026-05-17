@@ -240,3 +240,5 @@ This repository is provided for informational and research purposes only. It doe
 All content (analytical framework, methodology, code, charts, data interpretation, and text) is the intellectual property of Onesun Lee. Unauthorized reproduction, redistribution, or commercial use without prior written consent is prohibited. Academic citation is welcomed with clear source attribution.
 
 © 2026 Onesun Lee. All rights reserved.
+
+WSL/Linux workflow test successful.
